@@ -227,7 +227,7 @@ def fixEncodingFile(path):
     wf.close()
 
     #read input file
-    with codecs.open(path, 'r', encoding = 'ansi') as file:
+    with open(path, 'r') as file:
         lines = file.read()
 
     #write output file
