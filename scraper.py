@@ -138,7 +138,7 @@ def GENERATE_AVAILABILITY_DATA():
 
     fixEncodingFile("availability.csv")
 
-    shutil.copy("availability.csv", "../alko-app/assets/availability.csv")
+    shutil.copy("availability.csv", "../assets/availability.csv")
 ##
 # We download and refine the alko price .xls file
 ##
@@ -209,7 +209,7 @@ def GENERATE_PRODUCT_DATA():
     fixEncodingFile("alko_products.csv")
 
 
-    shutil.copy("alko_products.csv", "../alko-app/assets/alko_products.csv")
+    shutil.copy("alko_products.csv", "../assets/alko_products.csv")
 
 def fixEncodingFile(path):
     rf = open(path, "r")
