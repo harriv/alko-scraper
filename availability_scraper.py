@@ -55,11 +55,8 @@ class AvailabilityScraper():
         result_file = open("availability.csv", "w")
         
         product_availability_header = "product_number,"
-        with open("alko_store_names.txt") as f:
-            content = f.readlines()
-            for store in content:
-                store = store.replace("\n","")
-                product_availability_header += store + ","
+        for store in self.store_list:
+            product_availability_header += store + ","
 
         result_file.write(product_availability_header + "\n")
 
