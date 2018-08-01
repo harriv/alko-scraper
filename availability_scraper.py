@@ -11,9 +11,10 @@ from urllib.request import urlopen as uReq
 
 class AvailabilityScraper():
 
-    def __init__(self, configManager, store_list):
+    def __init__(self, configManager, store_list, product_id_list):
         self.configManager = configManager
         self.store_list = store_list
+        self.product_id_list = product_id_list
         self.GENERATE_AVAILABILITY_DATA()
 
     def GENERATE_AVAILABILITY_DATA(self):
@@ -25,25 +26,16 @@ class AvailabilityScraper():
             shutil.rmtree("result")
             os.makedirs("result")
 
-        # Open ids list
-        id_filename = "alko_product_ids.txt"
-
-        with open(id_filename) as f:
-            content = f.readlines()
-
-        # Remove \n and other chars at end of line
-        content = [x.strip() for x in content]
-
         i = 0
-        while (i < len(content)):
-            create_amount = 50
-            if (len(content) < i + 50):
-                create_amount = len(content) - i
-            log("Rows Left: " + str(len(content) - i) + " Creating Threads: " + str(create_amount) + " Done: " + str(i))
+        while (i < len(self.product_id_list)):
+            create_amount = int(self.configManager.get_value("Scraping", "ThreadAmount"))
+            if (len(self.product_id_list) < i + create_amount):
+                create_amount = len(self.product_id_list) - i
+            log("Rows Left: " + str(len(self.product_id_list) - i) + " Creating Threads: " + str(create_amount) + " Done: " + str(i))
 
             thread_list = []
             for thread_num in range(0, create_amount):
-                thread_list.append(threading.Thread(target=self.data_to_file_with_product_id, args=(content[i + thread_num],)))
+                thread_list.append(threading.Thread(target=self.data_to_file_with_product_id, args=(self.product_id_list[i + thread_num],)))
 
             for thread_num in range(0, create_amount):
                 thread_list[thread_num].start()

@@ -8,8 +8,9 @@ from util import fixEncodingFile, log
 
 class ProductScraper():
 
-    def __init__(self, configManager):
+    def __init__(self, configManager, product_id_list):
         self.configManager = configManager
+        self.product_id_list = product_id_list
         self.GENERATE_PRODUCT_DATA()
 
 
@@ -31,7 +32,6 @@ class ProductScraper():
         xls_sheet = xls_workbook.sheet_by_name('Alkon Hinnasto Tekstitiedostona')
 
         csv_file = open(out, 'w')
-        product_id_file = open("alko_product_ids.txt", 'w')
         wr = csv.writer(csv_file, quoting=csv.QUOTE_ALL)
         wr.writerow(["Numero",#0
                     "Nimi",#1
@@ -65,9 +65,9 @@ class ProductScraper():
         
             list = [list[0], list[1], pullokoko, list[4], list[5], list[8], list[17], list[18], list[20], eurPerLAlko]
             wr.writerow(list)
-            product_id_file.write(list[0] + "\n")
+            self.product_id_list.append(list[0])
+            
         csv_file.close()
-        product_id_file.close()
         self.remove_empty_lines("alko_products.csv")
 
         log("Processing product file: " + file + " -- " + out)

@@ -24,13 +24,14 @@ class Scraper():
 
     configManager = ConfigManager()
     store_list = []
+    product_id_list = []
 
     def __init__(self):
         log("Starting Scraper")
 
         self.store_list = self.fetch_alkos()
-        self.productScraper = ProductScraper(self.configManager)
-        self.availabilityScraper = AvailabilityScraper(self.configManager, self.store_list)
+        self.productScraper = ProductScraper(self.configManager, self.product_id_list)
+        self.availabilityScraper = AvailabilityScraper(self.configManager, self.store_list, self.product_id_list)
         self.CLEAN_FILES()
 
     def fetch_alkos(self):
