@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import urllib
 import shutil
 import xlrd
@@ -62,8 +65,9 @@ class ProductScraper():
                 eurPerLAlko = round(float(list[4])/(pullokoko*(float(list[20])/100)), 2)
             except:
                 eurPerLAlko = "0"
-        
+
             list = [list[0], list[1], pullokoko, list[4], list[5], list[8], list[17], list[18], list[20], eurPerLAlko]
+
             wr.writerow(list)
             self.product_id_list.append(list[0])
             
