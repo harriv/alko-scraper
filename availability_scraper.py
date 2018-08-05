@@ -60,7 +60,7 @@ class AvailabilityScraper():
         
         product_availability_header = time.strftime("%d.%m.%Y  %H:%M:%S") + ","
         for store in self.store_list:
-            product_availability_header += store + ","
+            product_availability_header += store.replace("Alko ", "") + ","
 
         result_file.write(product_availability_header + "\n")
 
