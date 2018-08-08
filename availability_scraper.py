@@ -15,7 +15,8 @@ from urllib.request import urlopen as uReq
 
 class AvailabilityScraper():
 
-    def __init__(self, configManager, store_list, product_id_list):
+    def __init__(self, connection, configManager, store_list, product_id_list):
+        self.connection = connection
         self.configManager = configManager
         self.store_list = store_list
         self.product_id_list = product_id_list
@@ -104,6 +105,12 @@ class AvailabilityScraper():
                 csv_line_string += "1,"
             else:
                 csv_line_string += "0,"
+
+        cursor = self.connection.cursor()
+        sql = """INSERT INTO availability(Numero, Availability) VALUES('{0}','{1}') RETURNING Numero;""".format("", csv_line_string)
+
+        cursor.execute(sql)
+
 
         filename = "result/" + str(id) + ".json"
         f = open(filename, "w")
