@@ -12,6 +12,7 @@ pip install xlrd
 
 ## Planned features
 * All data => PostgreSQL
+* Super Alko(Viinaranta) scraping
 
 ## Images
 ![alt text](https://raw.githubusercontent.com/olahepelto/alko-scraper/master/images/Screenshot1.png "Screenshot 1")
