@@ -18,6 +18,7 @@ from bs4 import BeautifulSoup as soup
 
 from availability_scraper import AvailabilityScraper
 from config_manager import ConfigManager
+from super_alko_scraper import SuperAlkoScraper
 from product_scraper import ProductScraper
 from util import fixEncodingFile, log
 
@@ -39,8 +40,9 @@ class Scraper():
         self.dropTable(self.conn)
 
         self.store_list = self.fetch_alkos()
-        self.productScraper = ProductScraper(self.conn, self.configManager, self.product_id_list)
-        self.availabilityScraper = AvailabilityScraper(self.conn, self.configManager, self.store_list, self.product_id_list)
+        #self.productScraper = ProductScraper(self.conn, self.configManager, self.product_id_list)
+        #self.availabilityScraper = AvailabilityScraper(self.conn, self.configManager, self.store_list, self.product_id_list)
+        self.superAlkoScraper = SuperAlkoScraper()
         self.CLEAN_FILES()
 
     def dropTable(self, conn):
