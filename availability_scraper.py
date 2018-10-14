@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import time
-import urllib
+import requests
 import shutil
 import xlrd
 import csv
@@ -11,7 +11,6 @@ import threading
 from configparser import ConfigParser
 from util import fixEncodingFile, log
 from bs4 import BeautifulSoup as soup
-from urllib.request import urlopen as uReq
 
 class AvailabilityScraper():
 
@@ -20,6 +19,12 @@ class AvailabilityScraper():
         self.configManager = configManager
         self.store_list = store_list
         self.product_id_list = product_id_list
+
+        self.session = requests.session()
+        self.session.proxies = {}
+        self.session.proxies['http'] = 'socks5://localhost:9050'
+        self.session.proxies['https'] = 'socks5://localhost:9050'
+
         self.GENERATE_AVAILABILITY_DATA()
 
     def GENERATE_AVAILABILITY_DATA(self):
@@ -80,14 +85,13 @@ class AvailabilityScraper():
 
         request_success = False
         try_count = 0
-        while(not request_success or try_count < 20):
+        while(not request_success and try_count < 20):
             try_count += 1
 
             try:
-                uClient = uReq(my_url)
-                page_html = uClient.read()
-                uClient.close()
+                page_html = self.session.get(my_url).text
                 request_success = True
+                log("Got availability: " + str(id))
             except:
                 log("ERROR: Retrying request Try: " + str(try_count) + " ID: " + str(id))
         
@@ -106,10 +110,10 @@ class AvailabilityScraper():
             else:
                 csv_line_string += "0,"
 
-        cursor = self.connection.cursor()
-        sql = """INSERT INTO availability(Numero, Availability) VALUES('{0}','{1}') RETURNING Numero;""".format("", csv_line_string)
+        #cursor = self.connection.cursor()
+        #sql = """INSERT INTO availability(Numero, Availability) VALUES('{0}','{1}') RETURNING Numero;""".format("", csv_line_string)
 
-        cursor.execute(sql)
+        #cursor.execute(sql)
 
 
         filename = "result/" + str(id) + ".json"

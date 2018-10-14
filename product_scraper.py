@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import urllib
+import requests
 import shutil
 import xlrd
 import csv
@@ -15,14 +15,22 @@ class ProductScraper():
         self.connection = connection
         self.configManager = configManager
         self.product_id_list = product_id_list
+
+        self.session = requests.session()
+        self.session.proxies = {}
+        self.session.proxies['http'] = 'socks5://localhost:9050'
+        self.session.proxies['https'] = 'socks5://localhost:9050'
+
         self.GENERATE_PRODUCT_DATA()
 
 
     def GENERATE_PRODUCT_DATA(self):
         # Download the file from `url` and save it locally under `file_name`:
-        with urllib.request.urlopen(
-            self.configManager.get_value("Url", "AlkoXMLProductsUrl")) as response, open("alko_products.xls", 'wb') as out_file:
-            shutil.copyfileobj(response, out_file)
+        req = self.session.get(self.configManager.get_value("Url", "AlkoXMLProductsUrl"))
+        open("alko_products.xls", 'wb').write(req.content)
+        
+        #with urllib.request.urlopen(self.configManager.get_value("Url", "AlkoXMLProductsUrl")) as response, open("alko_products.xls", 'wb') as out_file:
+        #    shutil.copyfileobj(response, out_file)
 
         self.process_product_file("alko_products.xls", "alko_products.csv")
 
@@ -77,12 +85,12 @@ class ProductScraper():
 
             new_list = [list[0], list[1], pullokoko, list[4], list[5], list[8], list[17], list[18], list[20], eurPerLAlko]
 
-            cursor = self.connection.cursor()
-            sql = """INSERT INTO products(Numero, Nimi, Pullokoko, Hinta, Litrahinta, Tyyppi, Luonnehdinta, Pakkaustyyppi, ProsAlkohol, EurPerLAlkohol)
-                VALUES('{0}','{1}',{2},{3},{4},'{5}','{6}','{7}',{8},{9}) RETURNING Numero;""".format(list[0], list[1], pullokoko, list[4], list[5], list[8], list[17], list[18], list[20], eurPerLAlko)
+            #cursor = self.connection.cursor()
+            #sql = """INSERT INTO products(Numero, Nimi, Pullokoko, Hinta, Litrahinta, Tyyppi, Luonnehdinta, Pakkaustyyppi, ProsAlkohol, EurPerLAlkohol)
+            #    VALUES('{0}','{1}',{2},{3},{4},'{5}','{6}','{7}',{8},{9}) RETURNING Numero;""".format(list[0], list[1], pullokoko, list[4], list[5], list[8], list[17], list[18], list[20], eurPerLAlko)
 
-            cursor.execute(sql)
-            self.connection.commit()
+            #cursor.execute(sql)
+            #self.connection.commit()
 
             wr.writerow(new_list)
             self.product_id_list.append(list[0])

@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import time
-import urllib
 import shutil
 import xlrd
 import csv
@@ -11,7 +10,6 @@ import threading
 from configparser import ConfigParser
 from util import fixEncodingFile, log
 from bs4 import BeautifulSoup as soup
-from urllib.request import urlopen as uReq
 import xml.etree.ElementTree as xml
 
 class SuperAlkoScraper():
