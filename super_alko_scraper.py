@@ -11,6 +11,7 @@ from configparser import ConfigParser
 from util import fixEncodingFile, log
 from bs4 import BeautifulSoup as soup
 import xml.etree.ElementTree as xml
+from urllib.request import urlopen as uReq
 
 class SuperAlkoScraper():
     
@@ -29,7 +30,7 @@ class SuperAlkoScraper():
             create_amount = 10
             if (AMOUNT_SCRAPER_PRODUCTS < i + create_amount):
                 create_amount = AMOUNT_SCRAPER_PRODUCTS - i
-            #log("Rows Left: " + str(AMOUNT_SCRAPER_PRODUCTS - i) + " Creating Threads: " + str(create_amount) + " Done: " + str(i))
+            log("Rows Left: " + str(AMOUNT_SCRAPER_PRODUCTS - i) + " Creating Threads: " + str(create_amount) + " Done: " + str(i))
 
             thread_list = []
             for thread_num in range(0, create_amount):
@@ -63,15 +64,40 @@ class SuperAlkoScraper():
         stores_in_stock_soup = page_soup.findAll("td",{"class": "kast"})#, {"class": "store-in-stock"}
 
         newList = []
-        for a in stores_in_stock_soup:
-            newList.append(self.remove_tags(str(a)))
+        finalList = []
+        try:
+            for a in stores_in_stock_soup:
+                newList.append(self.remove_tags(str(a)))
+            
+            for a in newList:
+                if("Product Code" in a or "Product type" in a or "Specification" in a or "Product type" in a or "In the Drawer" in a):
+                    newList.remove(a)
 
-        if(newList[0] != '' and not len(newList) == 8):
-            newList = [newList[0],newList[7],newList[9]]
-            csv_line_string = str(id)
-            for store in newList:
-                csv_line_string += "," + store
-            self.write_to_file(csv_line_string)
+            if(newList[0] != '' and not len(newList) == 8 and not "Tobacco" in newList[1]):
+                finalList = [newList[0]]
+                for a in finalList[0].split(" "):
+                    if("%" in a):
+                        finalList.append(a.replace("%","").strip())
+                
+                first_two_euro_values = []
+                for a in newList:
+                    if("€" in a):
+                        first_two_euro_values.append(a.replace("€","").replace("/L","").replace(".",",").strip())
+                        
+                finalList.append(first_two_euro_values[0])
+                finalList.append(first_two_euro_values[1])
+                finalList.append(str((float(finalList[3].replace(",","."))*100)/float(finalList[1].replace(",","."))).replace(".", ","))
+        
+                csv_line_string = str(id)
+                for store in finalList:
+                    csv_line_string += ";" + store
+                self.write_to_file(csv_line_string)
+        except:
+            log("ERROR: Failed to process webpage, nothing added to csv!")
+            #log(newList)
+            #log(finalList)
+            return
+
         return
 
         #stores_in_stock = []

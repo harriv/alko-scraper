@@ -37,20 +37,17 @@ class Scraper():
         #    password=self.configManager.get_value("Database", "Password"))
         #self.dropTable(self.conn)
 
-        self.session = requests.session()
-        self.session.proxies = {}
-        self.session.proxies['http'] = 'socks5://localhost:9050'
-        self.session.proxies['https'] = 'socks5://localhost:9050'
+        #self.session = requests.session()
+        #self.session.proxies = {}
+        #self.session.proxies['http'] = 'socks5://localhost:9050'
+        #self.session.proxies['https'] = 'socks5://localhost:9050'
 
-        self.store_list = self.fetch_alkos()
+        #self.store_list = self.fetch_alkos()
 
-        #
-        #  Currently disabled for faster running times
-        #
-        self.productScraper = ProductScraper(self.conn, self.configManager, self.product_id_list)
-        self.availabilityScraper = AvailabilityScraper(self.conn, self.configManager, self.store_list, self.product_id_list)
-        #self.superAlkoScraper = SuperAlkoScraper()
-        self.CLEAN_FILES()
+        #self.productScraper = ProductScraper(self.conn, self.configManager, self.product_id_list)
+        #self.availabilityScraper = AvailabilityScraper(self.conn, self.configManager, self.store_list, self.product_id_list)
+        self.superAlkoScraper = SuperAlkoScraper()
+        #self.CLEAN_FILES()
 
     def dropTable(self, conn):
         cursor = conn.cursor()
