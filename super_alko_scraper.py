@@ -17,32 +17,54 @@ class SuperAlkoScraper():
     
     global_lock = threading.Lock()
 
-    def __init__(self):
-        self.GENERATE_AVAILABILITY_DATA()
+    def __init__(self, configManager, session):
+        self.session = session
+        self.configManager = configManager
+        self.generate_super_alko_product_csv()
 
-    def GENERATE_AVAILABILITY_DATA(self):
+    def generate_super_alko_product_csv(self):
         log("Generating availability data.")
-        AMOUNT_SCRAPER_PRODUCTS = 30000
-        SCRAPER_START_ID = 21000
+        AMOUNT_SCRAPER_PRODUCTS = int(self.configManager.get_value("SuperAlkoScraper", "ScrapeForwardIdAmount"))
+        SCRAPER_START_ID = int(self.configManager.get_value("SuperAlkoScraper", "StartScrapingId"))
+        CREATE_THREAD_AMOUNT = int(self.configManager.get_value("SuperAlkoScraper", "ThreadAmount"))
+
+        HEADER = [
+            "Numero",
+            "Nimi",#1
+            "Pullokoko",#3
+            "Hinta",#4
+            "Litrahinta",#5
+            "Tyyppi",#8
+            "Luonnehdinta",#17
+            "Pakkaustyyppi",#18
+            "ProsAlkohol",#20
+            "EurPerLAlkohol"
+        ]
+        self.write_to_file(";".join(HEADER))
 
         i = 0
         while (i < AMOUNT_SCRAPER_PRODUCTS):
-            create_amount = 10
-            if (AMOUNT_SCRAPER_PRODUCTS < i + create_amount):
-                create_amount = AMOUNT_SCRAPER_PRODUCTS - i
-            log("Rows Left: " + str(AMOUNT_SCRAPER_PRODUCTS - i) + " Creating Threads: " + str(create_amount) + " Done: " + str(i))
+            
+            if (AMOUNT_SCRAPER_PRODUCTS < i + CREATE_THREAD_AMOUNT):
+                CREATE_THREAD_AMOUNT = AMOUNT_SCRAPER_PRODUCTS - i
+            log("Rows Left: " + str(AMOUNT_SCRAPER_PRODUCTS - i) + " Creating Threads: " + str(CREATE_THREAD_AMOUNT) + " Done: " + str(i))
 
             thread_list = []
-            for thread_num in range(0, create_amount):
+            for thread_num in range(0, CREATE_THREAD_AMOUNT):
                 thread_list.append(threading.Thread(target=self.data_to_file_with_product_id, args=((SCRAPER_START_ID + i + thread_num),)))
 
-            for thread_num in range(0, create_amount):
+            for thread_num in range(0, CREATE_THREAD_AMOUNT):
                 thread_list[thread_num].start()
 
-            for thread_num in range(0, create_amount):
+            for thread_num in range(0, CREATE_THREAD_AMOUNT):
                 thread_list[thread_num].join()
 
-            i += create_amount
+            i += CREATE_THREAD_AMOUNT
+
+
+        fixEncodingFile("super_alko_products.csv")
+
+        shutil.copy("super_alko_products.csv", self.configManager.get_value("OutputFiles", "SuperAlkoProductsFile"))
 
     def data_to_file_with_product_id(self, id):
         request_success = False
@@ -75,39 +97,32 @@ class SuperAlkoScraper():
 
             if(newList[0] != '' and not len(newList) == 8 and not "Tobacco" in newList[1]):
                 finalList = [newList[0]]
-                for a in finalList[0].split(" "):
-                    if("%" in a):
-                        finalList.append(a.replace("%","").strip())
-                
+                                
                 first_two_euro_values = []
                 for a in newList:
                     if("€" in a):
                         first_two_euro_values.append(a.replace("€","").replace("/L","").replace(".",",").strip())
-                        
+
+                finalList.append("-") 
                 finalList.append(first_two_euro_values[0])
                 finalList.append(first_two_euro_values[1])
-                finalList.append(str((float(finalList[3].replace(",","."))*100)/float(finalList[1].replace(",","."))).replace(".", ","))
-        
+                finalList.append("-") 
+                finalList.append("-") 
+                finalList.append("-")
+
+                for a in finalList[0].split(" "):
+                    if("%" in a):
+                        pros_alcohol = a.replace("%","").strip()
+                        finalList.append(a.replace("%","").strip())
+
+                finalList.append(str((float(first_two_euro_values[1].replace(",","."))*100)/float(pros_alcohol.replace(",","."))).replace(".", ","))
+
                 csv_line_string = str(id)
                 for store in finalList:
                     csv_line_string += ";" + store
                 self.write_to_file(csv_line_string)
         except:
             log("ERROR: Failed to process webpage, nothing added to csv!")
-            #log(newList)
-            #log(finalList)
-            return
-
-        return
-
-        #stores_in_stock = []
-        #for a in stores_in_stock_soup:
-        #    stores_in_stock.append(a.text)
-
-        filename = "result/" + str(id) + ".json"
-        f = open(filename, "w")
-        f.write(csv_line_string)
-        f.close()
 
     def remove_tags(self, text):
         return ''.join(xml.fromstring(text).itertext())

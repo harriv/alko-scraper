@@ -14,17 +14,13 @@ from bs4 import BeautifulSoup as soup
 
 class AvailabilityScraper():
 
-    def __init__(self, connection, configManager, store_list, product_id_list):
+    def __init__(self, connection, configManager, store_list, product_id_list, session):
         self.connection = connection
         self.configManager = configManager
         self.store_list = store_list
         self.product_id_list = product_id_list
 
-        self.session = requests.session()
-        self.session.proxies = {}
-        self.session.proxies['http'] = 'socks5://localhost:9050'
-        self.session.proxies['https'] = 'socks5://localhost:9050'
-
+        self.session = session
         self.GENERATE_AVAILABILITY_DATA()
 
     def GENERATE_AVAILABILITY_DATA(self):
@@ -38,7 +34,7 @@ class AvailabilityScraper():
 
         i = 0
         while (i < len(self.product_id_list)):
-            create_amount = int(self.configManager.get_value("Scraping", "ThreadAmount"))
+            create_amount = int(self.configManager.get_value("AlkoAvailabilityScraper", "ThreadAmount"))
             if (len(self.product_id_list) < i + create_amount):
                 create_amount = len(self.product_id_list) - i
             log("Rows Left: " + str(len(self.product_id_list) - i) + " Creating Threads: " + str(create_amount) + " Done: " + str(i))
@@ -72,7 +68,7 @@ class AvailabilityScraper():
 
         for filename in os.listdir('result'):
             file_contents = open("result/" + filename).read()
-            result_file.write(filename.split(".")[0] + "," + file_contents + "\n")
+            result_file.write(filename.split(".")[0] + ";" + file_contents + "\n")
 
         result_file.close()
 
@@ -106,9 +102,9 @@ class AvailabilityScraper():
         csv_line_string = ""
         for store in self.store_list:
             if store in stores_in_stock:
-                csv_line_string += "1,"
+                csv_line_string += "1;"
             else:
-                csv_line_string += "0,"
+                csv_line_string += "0;"
 
         #cursor = self.connection.cursor()
         #sql = """INSERT INTO availability(Numero, Availability) VALUES('{0}','{1}') RETURNING Numero;""".format("", csv_line_string)

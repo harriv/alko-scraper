@@ -11,20 +11,16 @@ from util import fixEncodingFile, log
 
 class ProductScraper():
 
-    def __init__(self, connection, configManager, product_id_list):
+    def __init__(self, connection, configManager, product_id_list, session):
         self.connection = connection
         self.configManager = configManager
         self.product_id_list = product_id_list
-
-        self.session = requests.session()
-        self.session.proxies = {}
-        self.session.proxies['http'] = 'socks5://localhost:9050'
-        self.session.proxies['https'] = 'socks5://localhost:9050'
-
-        self.GENERATE_PRODUCT_DATA()
+        self.session = session
+        
+        self.generate_product_data()
 
 
-    def GENERATE_PRODUCT_DATA(self):
+    def generate_product_data(self):
         # Download the file from `url` and save it locally under `file_name`:
         req = self.session.get(self.configManager.get_value("Url", "AlkoXMLProductsUrl"))
         open("alko_products.xls", 'wb').write(req.content)
@@ -44,7 +40,7 @@ class ProductScraper():
         xls_sheet = xls_workbook.sheet_by_name('Alkon Hinnasto Tekstitiedostona')
 
         csv_file = open(out, 'w')
-        wr = csv.writer(csv_file, quoting=csv.QUOTE_ALL)
+        wr = csv.writer(csv_file, quoting=csv.QUOTE_ALL, delimiter =';')
         wr.writerow(["Numero",#0
                     "Nimi",#1
                     "Pullokoko",#3

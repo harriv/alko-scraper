@@ -28,6 +28,9 @@ class Scraper():
     product_id_list = []
 
     def __init__(self):
+        with open("alko_ascii_logo.txt", 'r') as fin:
+            print(fin.read())
+
         log("Starting Scraper")
         self.conn = None
         #self.conn = psycopg2.connect(
@@ -37,17 +40,22 @@ class Scraper():
         #    password=self.configManager.get_value("Database", "Password"))
         #self.dropTable(self.conn)
 
-        #self.session = requests.session()
-        #self.session.proxies = {}
-        #self.session.proxies['http'] = 'socks5://localhost:9050'
-        #self.session.proxies['https'] = 'socks5://localhost:9050'
+        self.session = requests.session()
+        self.session.proxies = {}
+        self.session.proxies['http'] = self.configManager.get_value("SocksProxy", "Http")
+        self.session.proxies['https'] = self.configManager.get_value("SocksProxy", "Https")
 
-        #self.store_list = self.fetch_alkos()
+        self.store_list = self.fetch_alkos()
 
-        #self.productScraper = ProductScraper(self.conn, self.configManager, self.product_id_list)
-        #self.availabilityScraper = AvailabilityScraper(self.conn, self.configManager, self.store_list, self.product_id_list)
-        self.superAlkoScraper = SuperAlkoScraper()
-        #self.CLEAN_FILES()
+        if(self.configManager.get_value("AlkoProductScraper", "Enabled") == "true"):
+            self.productScraper = ProductScraper(self.conn, self.configManager, self.product_id_list, self.session)
+        if(self.configManager.get_value("AlkoAvailabilityScraper", "Enabled") == "true"):
+            self.availabilityScraper = AvailabilityScraper(self.conn, self.configManager, self.store_list, self.product_id_list, self.session)
+        if(self.configManager.get_value("SuperAlkoScraper", "Enabled") == "true"):
+            self.superAlkoScraper = SuperAlkoScraper(self.configManager, self.session)
+        
+        if(self.configManager.get_value("PostRun", "Cleanup") == "true"):
+            self.CLEAN_FILES()
 
     def dropTable(self, conn):
         cursor = conn.cursor()
@@ -91,9 +99,28 @@ class Scraper():
     def CLEAN_FILES(self):
         try:
             shutil.rmtree("result")
-            os.remove("alko_products.xls")
-            log("Cleaned folder")
+            log("Cleaned results folder")
         except:
-            log("ERROR: Cleaning folders failed")
+            log("ERROR: Cleaning results folder failed")
+        try:
+            os.remove("alko_products.xls")
+            log("Cleaned alko_products.xls")
+        except:
+            log("ERROR: Cleaning alko_products.xls failed")
+        try:
+            os.remove("alko_products.csv")
+            log("Cleaned alko_products.csv")
+        except:
+            log("ERROR: Cleaning alko_products.csv failed")
+        try:
+            os.remove("super_alko_products.csv")
+            log("Cleaned super_alko_products.csv")
+        except:
+            log("ERROR: Cleaning super_alko_products.csv failed")
+        try:
+            os.remove("availability.csv")
+            log("Cleaned availability.csv")
+        except:
+            log("ERROR: Cleaning availability.csv failed")
 
 Scraper()
