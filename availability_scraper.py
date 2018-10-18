@@ -12,19 +12,17 @@ from configparser import ConfigParser
 from util import fixEncodingFile, log
 from bs4 import BeautifulSoup as soup
 
+
 class AvailabilityScraper():
 
-    def __init__(self, connection, configManager, store_list, product_id_list):
+    def __init__(self, connection, configManager,
+                 store_list, product_id_list, session):
         self.connection = connection
         self.configManager = configManager
         self.store_list = store_list
         self.product_id_list = product_id_list
 
-        self.session = requests.session()
-        self.session.proxies = {}
-        self.session.proxies['http'] = 'socks5://localhost:9050'
-        self.session.proxies['https'] = 'socks5://localhost:9050'
-
+        self.session = session
         self.GENERATE_AVAILABILITY_DATA()
 
     def GENERATE_AVAILABILITY_DATA(self):
@@ -38,14 +36,21 @@ class AvailabilityScraper():
 
         i = 0
         while (i < len(self.product_id_list)):
-            create_amount = int(self.configManager.get_value("Scraping", "ThreadAmount"))
+            create_amount = int(self.configManager.get_value(
+                "AlkoAvailabilityScraper", "ThreadAmount"))
             if (len(self.product_id_list) < i + create_amount):
                 create_amount = len(self.product_id_list) - i
-            log("Rows Left: " + str(len(self.product_id_list) - i) + " Creating Threads: " + str(create_amount) + " Done: " + str(i))
+            log("Rows Left: " + str(len(self.product_id_list) - i) +
+                " Creating Threads: " + str(create_amount) + " Done: " + str(i)
+                )
 
             thread_list = []
             for thread_num in range(0, create_amount):
-                thread_list.append(threading.Thread(target=self.data_to_file_with_product_id, args=(self.product_id_list[i + thread_num],)))
+                thread_list.append(
+                    threading.Thread(target=self.data_to_file_with_product_id,
+                                     args=(
+                                         self.product_id_list[i + thread_num],
+                                     )))
 
             for thread_num in range(0, create_amount):
                 thread_list[thread_num].start()
@@ -59,11 +64,12 @@ class AvailabilityScraper():
 
         fixEncodingFile("availability.csv")
 
-        shutil.copy("availability.csv", self.configManager.get_value("OutputFiles", "AvailabilityFile"))
-    
+        shutil.copy("availability.csv", self.configManager.get_value(
+            "OutputFiles", "AvailabilityFile"))
+
     def merge_all_files(self):
         result_file = open("availability.csv", "w")
-        
+
         product_availability_header = time.strftime("%d.%m.%Y  %H:%M:%S") + ","
         for store in self.store_list:
             product_availability_header += store.replace("Alko ", "") + ","
@@ -72,16 +78,17 @@ class AvailabilityScraper():
 
         for filename in os.listdir('result'):
             file_contents = open("result/" + filename).read()
-            result_file.write(filename.split(".")[0] + "," + file_contents + "\n")
+            result_file.write(filename.split(
+                ".")[0] + ";" + file_contents + "\n")
 
         result_file.close()
 
         log("Merged all availability part files.")
-    
+
     def data_to_file_with_product_id(self, id):
-        my_url = 'https://www.alko.fi/INTERSHOP/web/WFS/Alko-OnlineShop-Site/fi_FI/-/EUR/ViewProduct-Include?SKU=' + str(
-            id) + '&amp;AppendStoreList=true&amp;AjaxRequestMarker=true#'
-        
+        my_url = 'https://www.alko.fi/INTERSHOP/web/WFS/Alko-Online' + \
+            'Shop-Site/fi_FI/-/EUR/ViewProduct-Include?SKU=' + \
+            str(id) + '&amp;AppendStoreList=true&amp;AjaxRequestMarker=true#'
 
         request_success = False
         try_count = 0
@@ -93,11 +100,12 @@ class AvailabilityScraper():
                 request_success = True
                 log("Got availability: " + str(id))
             except:
-                log("ERROR: Retrying request Try: " + str(try_count) + " ID: " + str(id))
-        
+                log("ERROR: Retrying request Try: " +
+                    str(try_count) + " ID: " + str(id))
 
         page_soup = soup(page_html, "html.parser")
-        stores_in_stock_soup = page_soup.findAll("span", {"class": "store-in-stock"})
+        stores_in_stock_soup = page_soup.findAll(
+            "span", {"class": "store-in-stock"})
 
         stores_in_stock = []
         for a in stores_in_stock_soup:
@@ -106,15 +114,15 @@ class AvailabilityScraper():
         csv_line_string = ""
         for store in self.store_list:
             if store in stores_in_stock:
-                csv_line_string += "1,"
+                csv_line_string += "1;"
             else:
-                csv_line_string += "0,"
+                csv_line_string += "0;"
 
-        #cursor = self.connection.cursor()
-        #sql = """INSERT INTO availability(Numero, Availability) VALUES('{0}','{1}') RETURNING Numero;""".format("", csv_line_string)
+        # cursor = self.connection.cursor()
+        # sql = """INSERT INTO availability(Numero, Availability) VALUES('{0}',
+        # '{1}') RETURNING Numero;""".format("", csv_line_string)
 
-        #cursor.execute(sql)
-
+        # cursor.execute(sql)
 
         filename = "result/" + str(id) + ".json"
         f = open(filename, "w")
