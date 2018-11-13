@@ -70,9 +70,9 @@ class AvailabilityScraper():
     def merge_all_files(self):
         result_file = open("availability.csv", "w")
 
-        product_availability_header = time.strftime("%d.%m.%Y  %H:%M:%S") + ","
+        product_availability_header = time.strftime("%d.%m.%Y  %H:%M:%S") + ";"
         for store in self.store_list:
-            product_availability_header += store.replace("Alko ", "") + ","
+            product_availability_header += store.replace("Alko ", "") + ";"
 
         result_file.write(product_availability_header + "\n")
 
