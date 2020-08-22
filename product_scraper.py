@@ -52,9 +52,9 @@ class ProductScraper():
                      "Hinta",  # 4
                      "Litrahinta",  # 5
                      "Tyyppi",  # 8
-                     "Luonnehdinta",  # 17
-                     "Pakkaustyyppi",  # 18
-                     "ProsAlkohol",  # 20
+                     "Luonnehdinta",   # 17->18
+                     "Pakkaustyyppi",  # 18->19
+                     "ProsAlkohol",    # 20->21
                      "EurPerLAlkohol"])  # Calculate
 
         for rownum in range(4, xls_sheet.nrows):
@@ -80,12 +80,12 @@ class ProductScraper():
 
             try:
                 eurPerLAlko = round(
-                    float(list[4])/(pullokoko*(float(list[20])/100)), 2)
+                    float(list[4])/(pullokoko*(float(list[21])/100)), 2)
             except:
                 eurPerLAlko = "0"
 
             new_list = [list[0], list[1], pullokoko, list[4], list[5],
-                        list[8], list[17], list[18], list[20], eurPerLAlko]
+                        list[8], list[18], list[19], list[21], eurPerLAlko]
 
             # cursor = self.connection.cursor()
             # sql = """INSERT INTO products(Numero, Nimi, Pullokoko, Hinta,
