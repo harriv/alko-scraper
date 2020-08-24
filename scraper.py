@@ -98,16 +98,18 @@ class Scraper():
     def fetch_alkos(self):
         my_url = 'https://www.alko.fi/myymalat-palvelut'
         page_soup = soup(str(self.session.get(my_url).text), "html.parser")
-
-        store_data_arr = json.loads(page_soup.find(type="application/json")
-                                    .get_text()
-                                    .replace("\\xc3\\xa4", "ä")
-                                    .replace("\\xc3\\xb6", "ö")
-                                    .replace("\\xc3\\xa5", "å")
-                                    .replace("\\xc3\\x84", "Ä")
-                                    .replace("\\xc3\\x96", "Ö")
-                                    .replace("\\xc3\\x85", "Å")
-                                    .replace("\\", ""))
+        ps = (str(page_soup.find(type="application/json"))
+        .replace('<script data-store-data="" type="application/json">',"")
+        .replace("</script>","")
+        .replace("\\xc3\\xa4", "ä")
+        .replace("\\xc3\\xb6", "ö")
+        .replace("\\xc3\\xa5", "å")
+        .replace("\\xc3\\x84", "Ä")
+        .replace("\\xc3\\x96", "Ö")
+        .replace("\\xc3\\x85", "Å")
+        .replace("\\", ""))
+        store_data_arr = json.loads(ps)
+        print(store_data_arr)
 
         # cursor = self.conn.cursor()
 
